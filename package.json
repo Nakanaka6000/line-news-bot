@@ -1,0 +1,20 @@
+{
+  "name": "line-news-bot",
+  "version": "1.0.0",
+  "description": "Sends daily financial news to a LINE chat.",
+  "main": "api/send-news.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "line",
+    "bot",
+    "news"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@line/bot-sdk": "^8.4.1",
+    "node-fetch": "^3.3.2"
+  }
+}
