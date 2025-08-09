@@ -31,6 +31,7 @@ async function getSP500() {
       throw new Error(`Finnhub API error! status: ${response.status}`);
     }
     const data = await response.json();
+    console.log('Finnhub API response:', data); // デバッグ用ログを追加
     return data.c; // c は現在価格 (current price)
   } catch (error) {
     console.error('Error fetching S&P 500 data:', error);
