@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     ]);
 
     // メッセージを作成
-    const messageText = `【朝の金融ニュース】\n\n・USD/JPY: ${usdJpy} 円\n・S&P 500: ${sp500}`;
+    const messageText = `【朝の金融ニュース】\n\n・USD/JPY: ${usdJpy} 円\n・S&P 500 (SPY): ${sp500}`;
 
     // LINEにプッシュメッセージを送信
     await client.pushMessage(process.env.LINE_USER_ID, {
