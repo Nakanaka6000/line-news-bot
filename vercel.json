@@ -4,5 +4,9 @@
       "path": "/api/send-news",
       "schedule": "0 21 * * *"
     }
+  ],
+  "rewrites": [
+    { "source": "/api/webhook", "destination": "/api/webhook.js" },
+    { "source": "/api/send-news", "destination": "/api/send-news.js" }
   ]
 }
