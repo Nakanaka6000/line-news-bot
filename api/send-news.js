@@ -6,36 +6,42 @@ const client = new line.Client({
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN
 });
 
-// Finnhub APIのベースURLとAPIキー
-const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
-const API_KEY = process.env.FINNHUB_API_KEY;
+// Alpha Vantage APIのAPIキー
+const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 
 /**
  * ドル円の為替レートを取得する
  */
 async function getUsdJpyRate() {
-  // Finnhubでは直接的な為替レートペアの提供が限定的なため、ここではダミーデータを返します。
-  // 実際のプロジェクトでは、対応する為替API(例: Alpha Vantage)に置き換える必要があります。
-  // 今回は例として固定値を返します。
-  return 150.25; 
+  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=JPY&apikey=${API_KEY}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    // APIの応答から為替レートを抽出
+    const rate = data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
+    return parseFloat(rate).toFixed(2); // 小数点以下2桁にフォーマット
+  } catch (error) {
+    console.error('Error fetching USD/JPY rate:', error);
+    console.error('Alpha Vantage API response for Forex:', await error.response?.json());
+    return '取得失敗';
+  }
 }
 
 /**
  * S&P 500の指数を取得する
  */
 async function getSP500() {
-  const url = `${FINNHUB_BASE_URL}/quote?symbol=^GSPC&token=${API_KEY}`;
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=SPY&apikey=${API_KEY}`;
   try {
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Finnhub API error! status: ${response.status}`);
-    }
     const data = await response.json();
-    console.log('Finnhub API response:', data); // デバッグ用ログを追加
-    return data.c; // c は現在価格 (current price)
+    // APIの応答から株価を抽出 (S&P500に連動するETFであるSPYを利用)
+    const price = data['Global Quote']['05. price'];
+    return parseFloat(price).toFixed(2); // 小数点以下2桁にフォーマット
   } catch (error) {
     console.error('Error fetching S&P 500 data:', error);
-    return null;
+    console.error('Alpha Vantage API response for S&P500:', await error.response?.json());
+    return '取得失敗';
   }
 }
 
@@ -43,7 +49,6 @@ async function getSP500() {
  * Vercelのサーバーレス関数ハンドラ
  */
 export default async function handler(req, res) {
-  // GETリクエスト以外は405 Method Not Allowedを返す
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -56,10 +61,7 @@ export default async function handler(req, res) {
     ]);
 
     // メッセージを作成
-    const messageText = `【朝の金融ニュース】
-
-・USD/JPY: ${usdJpy} 円
-・S&P 500: ${sp500}`;
+    const messageText = `【朝の金融ニュース】\n\n・USD/JPY: ${usdJpy} 円\n・S&P 500: ${sp500}`;
 
     // LINEにプッシュメッセージを送信
     await client.pushMessage(process.env.LINE_USER_ID, {
@@ -67,12 +69,10 @@ export default async function handler(req, res) {
       text: messageText,
     });
 
-    // 成功レスポンスを返す
     res.status(200).json({ message: 'Message sent successfully!' });
 
   } catch (error) {
     console.error('Error in handler:', error);
-    // エラーレスポンスを返す
     res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 }
